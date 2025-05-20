@@ -34,6 +34,15 @@ public class Producto {
     public void setPrecio(double piPrecio) {
         this.precio = piPrecio;
     }
-public void mostrar() {
+    public void mostrar() {
         System.out.println("ID: " + id + " | Nombre: " + nombre + " | Precio: $" + precio " | Stock: " + stock);
     }
+
+public boolean hayStock(int cantidad) {
+        return stock >= cantidad;
+    }
+
+    public void reducirStock(int cantidad) {
+        this.stock -= cantidad;
+    }
+}
