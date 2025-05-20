@@ -17,8 +17,10 @@ public class Main {
             System.out.println("2. Listar Productos");
             System.out.println("3. Modificar producto");
             System.out.println("4. Eliminar producto");
-            System.out.println("6. Nombre del producto");
-            System.out.println("5. Salir");
+            System.out.println("5. Consultar nombre por ID");
+            System.out.println("6. Crear pedido");
+            System.out.println("7. Mostrar pedidos");
+            System.out.println("8. Salir");
             System.out.print("Seleccione una opción: ");
             opcion = sc.nextInt();        
             sc.nextLine();           
@@ -28,11 +30,13 @@ public class Main {
                 case 2 -> listarProductos();
                 case 3 -> modificarProducto();
                 case 4 -> eliminarProducto();
-                case 5 -> System.out.println("Saliendo...");
-                case 6 -> devolverNombreProducto();
+                case 5 -> devolverNombreProducto();
+                case 6 -> crearPedido();
+                case 7 -> mostrarPedidos();
+                case 8 -> System.out.println("Saliendo...");
                 default -> System.out.println("Opción inválida");
             }
-        } while (opcion != 5); 
+        } while (opcion != 8); 
     }
 
     // Método para crear un nuevo producto
@@ -44,7 +48,6 @@ public class Main {
         System.out.print("Precio: ");
         double precio = sc.nextDouble();          // Leer precio
 
-        // Crear un nuevo objeto Producto y agregarlo a la lista
         Producto nuevo = new Producto(id, nombre, precio);
         lista.add(nuevo);
         System.out.println("Se agregó el producto " + nombre);
@@ -97,4 +100,102 @@ public class Main {
         }
         System.out.println("producto no encontrado.");
     }
+
+    public static void crearPedido() {
+        Pedido pedido = new Pedido();
+
+        while (true) {
+            listarProductos();
+            System.out.print("ID del producto a agregar (0 para finalizar): ");
+            int id = sc.nextInt();
+            if (id == 0) break;
+
+            Producto prod = null;
+            for (Producto p : lista) {
+                if (p.getId() == id) {
+                    prod = p;
+                    break;
+                }
+            }
+
+            if (prod == null) {
+                System.out.println("Producto no encontrado.");
+                continue;
+            }
+
+            System.out.print("Cantidad deseada: ");
+            int cantidad = sc.nextInt();
+
+            if (!prod.hayStock(cantidad)) {
+                System.out.println("Stock insuficiente.");
+                continue;
+            }
+
+            pedido.agregarLinea(new LineaPedido(prod, cantidad));
+            prod.reducirStock(cantidad);
+            System.out.println("Producto agregado al pedido.");
+        }
+
+        if (pedido.calcularTotal() > 0) {
+            pedidos.add(pedido);
+            System.out.println("Pedido creado con éxito. Total: $" + pedido.calcularTotal());
+        } else {
+            System.out.println("Pedido vacío, no se creó.");
+        }
+    }
+
+    public static void mostrarPedidos() {
+        if (pedidos.isEmpty()) {
+            System.out.println("No hay pedidos realizados.");
+            return;
+        }
+
+        int i = 1;
+        for (Pedido p : pedidos) {
+            System.out.println("\nPedido #" + i++);
+            p.mostrarPedido();
+        }
+    }
+
+    class ProductosAsociados {
+    private Producto producto;
+    private int cantidad;
+
+    public ProductosAsociados(Producto producto, int cantidad) {
+        this.producto = producto;
+        this.cantidad = cantidad;
+    }
+
+    public double getSubtotal() {
+        return producto.getPrecio() * cantidad;
+    }
+
+    public String toString() {
+        return producto.getNombre() + " x" + cantidad + " = $" + getSubtotal();
+    }
+}
+
+// Clase Pedido que agrupa varios productos
+class Pedido {
+    private ArrayList<ProductosAsociados> lineas = new ArrayList<>();
+
+    public void agregarLinea(ProductosAsociados lp) {
+        lineas.add(lp);
+    }
+
+    public double calcularTotal() {
+        double total = 0;
+        for (ProductosAsociados lp : lineas) {
+            total += lp.getSubtotal();
+        }
+        return total;
+    }
+
+    public void mostrarPedido() {
+        for (ProductosAsociados lp : lineas) {
+            System.out.println(lp);
+        }
+        System.out.println("TOTAL: $" + calcularTotal());
+    }
+}
 }
